@@ -1,12 +1,10 @@
 #![feature(slice_partition_dedup)]
 
 use std::fmt;
-// use std::collections::HashMap;
 use scanf::sscanf;
 use itertools::Itertools;
 
 const INPUT: &str = include_str!("../inputs/day5.txt");
-const TEST1: &str = include_str!("../inputs/test1.txt");
 const EXAMPLE: &str = include_str!("../inputs/example.txt");
 
 #[derive(PartialEq,Eq,Hash,Copy,Clone,Debug,PartialOrd,Ord)]
@@ -39,6 +37,7 @@ fn parse_input(input: &str) -> Vec<Line> {
                 let mut y1: i64 = 0;         
                 let mut y2: i64 = 0;         
                 sscanf!(l, "{},{} -> {},{}", x1,y1,x2,y2);    
+                // TODO fix unused result warning
                 Line{p1:Vec2{x:x1,y:y1},p2:Vec2{x:x2,y:y2}}
 
             })
@@ -49,8 +48,6 @@ fn parse_input(input: &str) -> Vec<Line> {
 
 // Add all the points on the line to the map
 fn create_line(line: &Line) -> Vec<Vec2> {
-    // println!("{:?} {:?}", line.p1, line.p2);
-    // Vertical line
     let mut points: Vec<Vec2> = vec!();
     if line.p1.x == line.p2.x {
         let r = if line.p1.y < line.p2.y {
@@ -58,7 +55,6 @@ fn create_line(line: &Line) -> Vec<Vec2> {
             } else {
                 line.p2.y ..= line.p1.y
             };
-        // println!("range r {:?}", r);
         r.for_each(|y| {
             points.push(Vec2{x:line.p1.x,y:y})
         });
@@ -70,7 +66,6 @@ fn create_line(line: &Line) -> Vec<Vec2> {
             } else {
                 line.p2.x ..= line.p1.x
             };
-        // println!("range r {:?}", r);
         r.for_each(|x| {
             points.push(Vec2{x:x,y:line.p1.y})
         });
@@ -89,17 +84,9 @@ fn solve(input: &Vec<Line>) -> i64 {
     for line in input {
         points.append(&mut create_line(line))
     }
-    // println!("{:?}", map);
-    // println!("{:?}", points);
-
     points.sort();
 
-    println!("sorted {:?}", points);
-
-    // let (dedup, duplicates) = points.partition_dedup();
     let duplicates: Vec<Vec2> = points.into_iter().duplicates().collect();
-
-    println!("dupes {:?}", duplicates);
 
     duplicates.len().try_into().unwrap()
 }
@@ -107,17 +94,10 @@ fn solve(input: &Vec<Line>) -> i64 {
 fn main() {
 
     let lines = parse_input(EXAMPLE);
-    // println!("{:?}", &lines);
     println!("{:?}", solve(&lines));
 
     let lines_input = parse_input(INPUT);
-    // println!("{:?}\n{:?}", &lines_input, lines_input.len());
     println!("{:?}", solve(&lines_input));
-
-    let lines_test1 = parse_input(TEST1);
-    // println!("{:?}\n{:?}", &lines_test1, lines_input.len());
-    println!("{:?}", solve(&lines_test1));
-
 
 }
 
