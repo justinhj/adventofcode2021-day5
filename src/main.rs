@@ -3,6 +3,7 @@ use std::fmt;
 use std::collections::HashMap;
 
 const INPUT: &str = include_str!("../inputs/day5.txt");
+const TEST1: &str = include_str!("../inputs/test1.txt");
 const EXAMPLE: &str = include_str!("../inputs/example.txt");
 
 #[derive(PartialEq,Eq,Hash,Copy,Clone,Debug)]
@@ -53,6 +54,7 @@ fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
             } else {
                 line.p2.y ..= line.p1.y
             };
+        // println!("range r {:?}", r);
         r.for_each(|y| {
             let point = Vec2{x:line.p1.x, y:y};
             let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
@@ -64,12 +66,16 @@ fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
             } else {
                 line.p2.x ..= line.p1.x
             };
+        // println!("range r {:?}", r);
         r.for_each(|x| {
             let point = Vec2{x:x, y:line.p1.y};
             let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
             map.insert(point, count + 1);
         })
-    }
+    } 
+    // else {
+    //     println!("skip {:?}", line);
+    // }
 }
 
 fn solve(input: &Vec<Line>) -> i64 {
@@ -78,25 +84,36 @@ fn solve(input: &Vec<Line>) -> i64 {
     for line in input {
         map_line(line, &mut map);
     }
-
-    map.values().filter(|v| **v > 1i64).count().try_into().unwrap()
-
     // println!("{:?}", map);
-
-    // input.len().try_into().unwrap()
+    println!("{:?}", map.values());
+    map.values().filter(|v| **v > 1i64).count().try_into().unwrap()
 }
 
 fn main() {
 
-    // Parse each line 
-    // 0,9 -> 5,9
-    // Plot the line into a hashmap
-    // Iterate over the hashmap values to get the target candidates
-    
     let lines = parse_input(EXAMPLE);
     // println!("{:?}", &lines);
     println!("{:?}", solve(&lines));
 
     let lines_input = parse_input(INPUT);
+    // println!("{:?}\n{:?}", &lines_input, lines_input.len());
     println!("{:?}", solve(&lines_input));
+
+    let lines_test1 = parse_input(TEST1);
+    // println!("{:?}\n{:?}", &lines_test1, lines_input.len());
+    println!("{:?}", solve(&lines_test1));
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn eq_vec2() {
+        assert_eq!(Vec2{x:2,y:1}, Vec2{x:1 + 1,y:1});
+    }
+}
+
+
+
+
