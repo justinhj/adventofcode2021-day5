@@ -53,9 +53,19 @@ fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
             } else {
                 line.p2.y ..= line.p1.y
             };
-        println!("{:?}", r);
         r.for_each(|y| {
             let point = Vec2{x:line.p1.x, y:y};
+            let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
+            map.insert(point, count + 1);
+        })
+    } else if line.p1.y == line.p2.y {
+        let r = if line.p1.x < line.p2.x {
+                line.p1.x ..= line.p2.x
+            } else {
+                line.p2.x ..= line.p1.x
+            };
+        r.for_each(|x| {
+            let point = Vec2{x:x, y:line.p1.y};
             let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
             map.insert(point, count + 1);
         })
@@ -69,9 +79,11 @@ fn solve(input: &Vec<Line>) -> i64 {
         map_line(line, &mut map);
     }
 
-    println!("{:?}", map);
+    map.values().filter(|v| **v > 1i64).count().try_into().unwrap()
 
-    input.len().try_into().unwrap()
+    // println!("{:?}", map);
+
+    // input.len().try_into().unwrap()
 }
 
 fn main() {
@@ -82,7 +94,9 @@ fn main() {
     // Iterate over the hashmap values to get the target candidates
     
     let lines = parse_input(EXAMPLE);
-    println!("{:?}", &lines);
+    // println!("{:?}", &lines);
     println!("{:?}", solve(&lines));
 
+    let lines_input = parse_input(INPUT);
+    println!("{:?}", solve(&lines_input));
 }
