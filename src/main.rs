@@ -43,15 +43,31 @@ fn parse_input(input: &str) -> Vec<Line> {
     lines
 }
 
+// Add all the points on the line to the map
 fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
-    let count: i64 = map.get(&line.p1).cloned().unwrap_or(0i64);
-    map.insert(line.p1, count + 1);
+    // println!("{:?} {:?}", line.p1, line.p2);
+    // Vertical line
+    if line.p1.x == line.p2.x {
+        let r = if line.p1.y < line.p2.y {
+                line.p1.y ..= line.p2.y
+            } else {
+                line.p2.y ..= line.p1.y
+            };
+        println!("{:?}", r);
+        r.for_each(|y| {
+            let point = Vec2{x:line.p1.x, y:y};
+            let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
+            map.insert(point, count + 1);
+        })
+    }
 }
 
 fn solve(input: &Vec<Line>) -> i64 {
     let mut map: HashMap<Vec2,i64> = HashMap::new();
 
-    map_line(&input[0], &mut map);
+    for line in input {
+        map_line(line, &mut map);
+    }
 
     println!("{:?}", map);
 
