@@ -1,12 +1,15 @@
-use scanf::sscanf;
+#![feature(slice_partition_dedup)]
+
 use std::fmt;
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use scanf::sscanf;
+use itertools::Itertools;
 
 const INPUT: &str = include_str!("../inputs/day5.txt");
 const TEST1: &str = include_str!("../inputs/test1.txt");
 const EXAMPLE: &str = include_str!("../inputs/example.txt");
 
-#[derive(PartialEq,Eq,Hash,Copy,Clone,Debug)]
+#[derive(PartialEq,Eq,Hash,Copy,Clone,Debug,PartialOrd,Ord)]
 struct Vec2{
     x: i64, 
     y: i64,
@@ -45,9 +48,10 @@ fn parse_input(input: &str) -> Vec<Line> {
 }
 
 // Add all the points on the line to the map
-fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
+fn create_line(line: &Line) -> Vec<Vec2> {
     // println!("{:?} {:?}", line.p1, line.p2);
     // Vertical line
+    let mut points: Vec<Vec2> = vec!();
     if line.p1.x == line.p2.x {
         let r = if line.p1.y < line.p2.y {
                 line.p1.y ..= line.p2.y
@@ -56,11 +60,11 @@ fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
             };
         // println!("range r {:?}", r);
         r.for_each(|y| {
-            let point = Vec2{x:line.p1.x, y:y};
-            let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
-            map.insert(point, count + 1);
-        })
-    } else if line.p1.y == line.p2.y {
+            points.push(Vec2{x:line.p1.x,y:y})
+        });
+        return points;
+    } 
+    else if line.p1.y == line.p2.y {
         let r = if line.p1.x < line.p2.x {
                 line.p1.x ..= line.p2.x
             } else {
@@ -68,25 +72,36 @@ fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
             };
         // println!("range r {:?}", r);
         r.for_each(|x| {
-            let point = Vec2{x:x, y:line.p1.y};
-            let count: i64 = map.get(&point).cloned().unwrap_or(0i64);
-            map.insert(point, count + 1);
-        })
-    } 
+            points.push(Vec2{x:x,y:line.p1.y})
+        });
+        return points;
+    } else {
+        return points;
+    }
     // else {
     //     println!("skip {:?}", line);
     // }
 }
 
 fn solve(input: &Vec<Line>) -> i64 {
-    let mut map: HashMap<Vec2,i64> = HashMap::new();
+    let mut points: Vec<Vec2> = vec!();
 
     for line in input {
-        map_line(line, &mut map);
+        points.append(&mut create_line(line))
     }
     // println!("{:?}", map);
-    println!("{:?}", map.values());
-    map.values().filter(|v| **v > 1i64).count().try_into().unwrap()
+    // println!("{:?}", points);
+
+    points.sort();
+
+    println!("sorted {:?}", points);
+
+    // let (dedup, duplicates) = points.partition_dedup();
+    let duplicates: Vec<Vec2> = points.into_iter().duplicates().collect();
+
+    println!("dupes {:?}", duplicates);
+
+    duplicates.len().try_into().unwrap()
 }
 
 fn main() {
@@ -102,11 +117,67 @@ fn main() {
     let lines_test1 = parse_input(TEST1);
     // println!("{:?}\n{:?}", &lines_test1, lines_input.len());
     println!("{:?}", solve(&lines_test1));
+
+
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_horizontal_line_creation() {
+        let line5 = parse_input("0,0 -> 4,0");
+        let line5_vec = create_line(&line5[0]);
+
+        let line5r = parse_input("4,0 -> 0,0");
+        let line5r_vec = create_line(&line5r[0]);
+
+        assert_eq!(line5_vec, line5r_vec);
+        assert_eq!(line5_vec.len(), 5);
+    }
+
+    #[test]
+    fn test_vertical_line_creation() {
+        let line5 = parse_input("0,4 -> 0,0");
+        let line5_vec = create_line(&line5[0]);
+
+        let line5r = parse_input("0,0 -> 0,4");
+        let line5r_vec = create_line(&line5r[0]);
+
+        assert_eq!(line5_vec, line5r_vec);
+        assert_eq!(line5_vec.len(), 5);
+    }
+
+    #[test]
+    fn test_invalid_line_creation() {
+        let line = parse_input("0,4 -> 4,0");
+        let line_vec = create_line(&line[0]);
+
+        assert_eq!(line_vec.len(), 0);
+    }
+
+    #[test]
+    fn test_overlaps() {
+        let line = parse_input("1,10 -> 1,109\n1,0 -> 1,119\n");
+        let line_vec1 = create_line(&line[0]);
+        let line_vec2 = create_line(&line[1]);
+
+        assert_eq!(line.len(), 2);
+        assert_eq!(line_vec1.len(), 100);
+        assert_eq!(line_vec2.len(), 120);
+        
+        let s = solve(&line);
+        assert_eq!(s, 100);
+    }
+
+    #[test]
+    fn test_a_square() {
+        let line = parse_input("10,10 -> 40,10\n10,10 -> 10,40\n10,40 -> 40,40\n40,40 -> 40,10\n");
+        
+        let s = solve(&line);
+        assert_eq!(s, 4);
+    }
 
     #[test]
     fn eq_vec2() {
