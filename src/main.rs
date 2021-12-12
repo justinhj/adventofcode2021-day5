@@ -1,14 +1,17 @@
 use scanf::sscanf;
 use std::fmt;
+use std::collections::HashMap;
 
 const INPUT: &str = include_str!("../inputs/day5.txt");
 const EXAMPLE: &str = include_str!("../inputs/example.txt");
 
+#[derive(PartialEq,Eq,Hash,Copy,Clone,Debug)]
 struct Vec2{
     x: i64, 
     y: i64,
 }
 
+#[derive(PartialEq,Eq,Hash)]
 struct Line {
     p1: Vec2,
     p2: Vec2,
@@ -40,6 +43,21 @@ fn parse_input(input: &str) -> Vec<Line> {
     lines
 }
 
+fn map_line(line: &Line, map: &mut HashMap<Vec2,i64>) {
+    let count: i64 = map.get(&line.p1).cloned().unwrap_or(0i64);
+    map.insert(line.p1, count + 1);
+}
+
+fn solve(input: &Vec<Line>) -> i64 {
+    let mut map: HashMap<Vec2,i64> = HashMap::new();
+
+    map_line(&input[0], &mut map);
+
+    println!("{:?}", map);
+
+    input.len().try_into().unwrap()
+}
+
 fn main() {
 
     // Parse each line 
@@ -48,6 +66,7 @@ fn main() {
     // Iterate over the hashmap values to get the target candidates
     
     let lines = parse_input(EXAMPLE);
-    println!("{:?}", lines);
+    println!("{:?}", &lines);
+    println!("{:?}", solve(&lines));
 
 }
